@@ -23,7 +23,13 @@ const cst = {
         CONFIRM: "CONFIRM",
         SUCCESS: "SUCCESS",
         ECHEC: "ECHEC"
-    }
+    },
+    addrMobidycAPI: 'http://localhost:8080/api/',
+    transferHOME:{
+        AIRTEL_MONEY: "AIRTEL_MONEY",
+        MOOV_MONEY: "MOOV_MONEY",
+        NONE: "NONE"
+    },
 }
 
 module.exports = cst;

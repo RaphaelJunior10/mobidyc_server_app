@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.5.0/socket.io.js"></script>
+<script>
+//Creation du socket avec obligation de forunir les infos de connexion
+const socket = io('http://localhost:3100', {
+  query: {
+    mail: 'rj@gmail.com', 
+    mdp: '1234'
+  }
+});
+
+// Événement de connexion au serveur
+socket.on('connect', () => {
+  console.log('Connecté au serveur Socket.IO');
+});
+
+//On demande au serveur toutes les informations
+socket.emit('get-all-infos', { data: 'someData' }, (response) => {
+  // Ce callback sera appelé lorsque le serveur répond
+  console.log('Réponse du serveur:', response);
+  console.log(response);
+});
+
+//On est informe lorsqu il y a une nouvelle transaction
+socket.on('new transaction', (data) => {
+    //Un nouvelle transaction a ete faire avec ce compte
+    alert('Vous venez de recevoir '+data.mob);
+    console.log(data);
+});
+
+//Le client demande a envoyer des mob dans un compte airtel money ou moov money
+/*socket.emit('mob_to_mob', {
+    //snid: '074739050',
+    rmid: '84474233',
+    montant: 200
+}, (response2) => {
+  // Ce callback sera appelé lorsque le serveur répond
+  console.log('Réponse du serveur number_to_mob:  ', response2);
+  console.log(response2);
+});*/
+
+//Autorisation pour prelever de son compte des mobs
+socket.on('get_auth', async (data, callback) => {
+    console.log('le client demande toutes ses infos');
+
+    var u = prompt(`Voulez vous envoyer ${data.montant} MOB a ${data.rid} via Mobidyc? Frais: ${data.frais}`);
+    console.log('on renvoi la reponse');
+    callback(u);
+});
+
+// Gérer la déconnexion
+socket.on('disconnect', () => {
+  console.log('Déconnecté du serveur Socket.IO');
+});
+
+</script>
+</html>
+
+
+
+

@@ -196,6 +196,22 @@ module.exports = {
 
 
     },
+
+    inform: function(req, res){
+        var data = req.body;
+        //console.log(data);
+        //console.log('iiiiiiiiiiii2222222');
+        for(var i= 0; i< data.length; i++){
+            //On recupere le socket de l utilisateur
+            var socket = req.uid_to_socket[data[i].uid];
+            if(socket != undefined && socket != null){
+                //L utilisateur est connecte, on lui envoi les info de la transaction
+                socket.emit('new transaction', data[i].body);
+            }
+        }
+        res.status(200).send("OK");
+    },
+
     login: function(req, res){
         //Params
         var email = req.body.email;

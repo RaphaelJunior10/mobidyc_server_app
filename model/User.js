@@ -27,6 +27,15 @@ const userSchema = new Schema({
         type: String,
         required: true
     },
+    code:{
+        type: String,
+        required: true,
+        default: () => '1234'
+    },
+    verified: {
+        type:Boolean,
+        default: () => FontFaceSetLoadEvent
+    },
     apikey: {
         type: String,
         required: true

@@ -4,343 +4,181 @@ const Service = require("../model/Service");
 const User = require("../model/User");
 const Transaction = require("../model/Transaction");
 const constantes = require('./constantes');
+const axios =  require('axios');
 
-exports.tr_check_modele = function(data){
-    return new Promise((resolve, reject) => {
-        var modele = "";
-        
-        //Verification de la presence des infos du sender
-        if(data.snid == undefined && data.smid == undefined ){
-            reject({'error': 'sender unknown'});
-        }
-        
-        if(data.snid?.trim().length == 0 && data.smid?.trim().length == 0){
-            reject({'error': 'sender unknown'});
-        }
-        
-        if(data.snid == undefined && data.smid?.length == 0){
-            reject({'error': 'sender unknown'});
-        }else if(data.smid == undefined && data.snid?.length == 0){
-            reject({'error': 'sender unknown'});
-        }
-        
-        //On verifi que pas plus de 1 sender a ete renseigne
-        if( data.snid?.length > 0 && data.smid?.length > 0 ){
-            reject({'error': 'one sender waitted but two given'});
-        }
-        
-        //On verifi le format du numero du client dans le cas ou le snum est fourni
-        if(data.snid?.length > 0 && data.snid?.length != 8 ){
-            reject({"error": "sender number is invalid"});
-        }
-        
-        //On verifi le format du numero mob du client dans le cas ou le snum est fourni
-        if(data.smid?.length > 0 && data.smid?.length != 8 ){
-            reject({"error": "sender mob number is invalid"});
-        }
-        
-        //On defini le le type de sender du modele
-        if(data.snid?.length > 0){
-            modele += "NUMBER_TO_";
-        }else{
-            modele += "MOB_TO_";
-        }
-        
-
-        //Verification de la presence des infos du receiver
-        if(data.rnid == undefined && data.rmid == undefined && data.rsid == undefined ){
-            reject({'error': 'receiver unknown'});
-        }
-        if(data.rnid?.trim().length == 0 && data.rmid?.trim().length == 0 && data.rsid?.trim().length == 0){
-            reject({'error': 'receiver unknown'});
-        }
-        
-        if(data.rnid == undefined && data.rmid == undefined && data.rsid?.length == 0){
-            reject({'error': 'receiver unknown'});
-        }else if(data.rnid == undefined && data.rsid == undefined && data.rmid?.length == 0){
-            reject({'error': 'receiver unknown'});
-        }else if(data.rmid == undefined && data.rsid == undefined && data.rnid?.length == 0){
-            reject({'error': 'receiver unknown'});
-        }
-        
-        //On verifi que pas plus de 1 receiver a ete renseigne
-        if( (data.rnid?.length > 0 && data.rmid?.length > 0) || (data.rnid?.length > 0 && data.rsid?.length > 0) || (data.rsid?.length > 0 && data.rmid?.length > 0) ){
-            reject({'error': 'one receiver waitted but many given'});
-        }
-        //On verifi le format du numero du client dans le cas ou le rnid est fourni
-        if(data.rnid?.length > 0 && data.rnid?.length != 8 ){
-            reject({"error": "receiver number is invalid"});
-        }
-        //On verifi le format du numero mob du client dans le cas ou le rmid est fourni
-        if(data.rmid?.length > 0 && data.rmid?.length != 8  ){
-            reject({"error": "receiver mob number is invalid"});
-        }
-        //On verifi le format de l'id  du service dans le cas ou le rsid est fourni
-        if (data.rsid?.length > 0 && !mongoose.Types.ObjectId.isValid(data.rsid)) {
-            reject({"error": "receiver service id is invalid"});
-        }
-        //On defini le le type de receiver du modele
-        if(data.rnid?.length > 0){
-            modele += "NUMBER";
-        }else if(data.rmid?.length > 0){
-            modele += "MOB";
-        }else{
-            modele += "SERVICE";
-        }
-
-        //On verifi que le montant a ete defini
-        if (typeof data.montant != 'number' && !(!isNaN(data.montant) && typeof data.montant === 'string')) {
-            // La variable est de type nombre
-            reject({'error': 'amount is unknown or in the wrong type'});
-            return;
-        } 
-        if (!isNaN(data.montant) && typeof data.montant === 'string') {
-            // La variable est une chaîne qui peut être convertie en nombre
-            data.montant = parseInt(data.montant);
-        }
-
-        //On verifi si l'apiid est rensigne pour quadrants differents de NUMBER_TO_SERVICE et MOB_TO_SERVICE
-        const Modeles = constantes.Modeles;
-        if(modele != Modeles.NUMBER_TO_SERVICE && modele != Modeles.MOB_TO_SERVICE){
-            if(data.apiid == undefined || data.apiid?.length == 0){
-                reject({'error': 'apiid is unknown'})
-            }
-            if (data.apiid?.length > 0 && !mongoose.Types.ObjectId.isValid(data.apiid)) {
-                reject({"error": "api id is invalid"});
-            }
-        }
-        
-        //On verifi si l'apikey est rensigne
-        if(data.apikey == undefined || data.apikey?.trim().length == 0){
-            reject({'error': 'apikey is unknown'})
-        }
-        resolve(modele);
-        
-    })
-}
-
-
-
-exports.tr_check_auth = function(ip, data, modele){
-    //verification des parametres d authentification
+exports.get_all_infos = function(uid){
     return new Promise(async (resolve, reject) => {
         try {
-            
-            //On verifi que seul l'ip local peut acceder aux 4 premieres fenetres du tableau RS
-            if(constantes.Private_APP_modele.includes(modele) && ip != constantes.localIP){
-                reject({'error': 'accès interdit'});
+            //On recupere les infos du user
+            var user = await User.findOne({_id: uid});
+            //On recupere les infos sur ses services
+            var ser = await Service.findOne({uid: user._id});
+            var allSer = await Service.find();
+            serObj = {};
+            for(var j=0;j<allSer?.length;j++){
+                serObj[allSer[j]._id.toString()] = allSer[j].nom;
             }
-            const Modeles = constantes.Modeles;
-            if(modele == Modeles.NUMBER_TO_SERVICE || modele == Modeles.MOB_TO_SERVICE){
-                //On verifi que le user qui en fait la demande est enregistre dans la bdd,
-                var ser = await Service.findOne({_id: data.rsid});
-                
-                if(ser == null){
-                    reject({'error': 'receiver service id is invalid'});
-                    return;
-                }
-                //On verifi que le apikey est correcte
-                if(!verifyApiKey(`ser${ip}vice`, ser._id.toString(), data.apikey)){
-                    reject({'error': 'api key is invalid'});
-                    return;
-                }
-                //On verifi que le smid est correcte si nous sommes dans le quadrant MOB_TO_SERVICE
-                if(modele == Modeles.MOB_TO_SERVICE){
-                    var res = await User.findOne({mid: data.smid});
-                    if(res == null){
-                        reject({'error': 'sender mobidic id is invalid'});
-                        return;
-                    }
-                    //Tout est ok, authorisation accodee
-                    resolve({rid: ser.uid.toString(), sid: res._id.toString()});
-                    return;
-                }else{
-                    //Tout est ok, authorisation accodee
-                    resolve({rid: ser.uid.toString()});
-                    return;
-                }
-            }else if(modele == Modeles.MOB_TO_MOB){
-                //On verifi que le user qui en fait la demande est enregistre dans la bdd,
-                var user = await User.findOne({mid: data.smid});
-                
-                if(user == null){
-                    reject({'error': 'sender mob id is invalid'});
-                    return;
-                }
-                //On verifi que le api id est correcte
-                if(user._id.toString() != data.apiid){
-                    reject({'error': 'api id is invalid'});
-                    return;
-                }
-                //On verifi que le apikey est correcte
-                if(!verifyApiKey(`us${constantes.localIP}er`, user._id.toString(), data.apikey)){
-                    reject({'error': 'api key is invalid'});
-                    return;
-                }
-                //On verifi si le rmid est correcte
-                var res = await User.findOne({mid: data.rmid});
-                if(res == null){
-                    reject({'error': 'receiver mobidic id is invalid'});
-                    return;
-                }
-                //Tout est ok, authorisation accodee
-                resolve({rid: res._id.toString(), sid: user._id.toString()});
-                return;
-
-            }else if(modele == Modeles.NUMBER_TO_MOB){
-                //On verifi que le user qui en fait la demande est enregistre dans la bdd,
-                var user = await User.findOne({mid: data.rmid});
-                
-                if(user == null){
-                    reject({'error': 'receiver mob id is invalid'});
-                    return;
-                }
-
-                //On verifi que le api id est correcte
-                if(user._id.toString() != data.apiid){
-                    reject({'error': 'api id is invalid'});
-                    return;
-                }
-
-                //On verifi que le apikey est correcte
-                if(!verifyApiKey(`us${constantes.localIP}er`, user._id.toString(), data.apikey)){
-                    reject({'error': 'api key is invalid'});
-                    return;
-                }
-                //Tout est ok, authorisation accodee
-                resolve({rid: user._id.toString()});
-                return;
-
-            }else if(modele == Modeles.MOB_TO_NUMBER){
-                //On verifi que le user qui en fait la demande est enregistre dans la bdd,
-                var user = await User.findOne({mid: data.smid});
-                
-                if(user == null){
-                    reject({'error': 'sender mob id is invalid'});
-                    return;
-                }
-                //On verifi que le api id est correcte
-                if(user._id.toString() != data.apiid){
-                    reject({'error': 'api id is invalid'});
-                    return;
-                }
-                //On verifi que le apikey est correcte
-                if(!verifyApiKey(`us${constantes.localIP}er`, user._id.toString(), data.apikey)){
-                    reject({'error': 'api key is invalid'});
-                    return;
-                }
-                //Tout est ok, authorisation accodee
-                resolve({sid: user._id.toString()});
-                return;
-
-            }else if(modele == Modeles.NUMBER_TO_NUMBER){
-                //On verifi que le user qui en fait la demande est enregistre dans la bdd,
-                var user = await User.findOne({_id: data.apiid});
-                
-                if(user == null){
-                    reject({'error': 'api id is invalid'});
-                    return;
-                }
-                //On verifi que le apikey est correcte
-                if(!verifyApiKey(`us${constantes.localIP}er`, user._id.toString(), data.apikey)){
-                    reject({'error': 'api key is invalid'});
-                    return;
-                }
-                //Tout est ok, authorisation accodee
-                resolve({sid: user._id.toString()});
-                return;
+            //On recupere les infos des transactions
+            var tel = user.tel;
+            var mid = user.mid;
+            var serList = [];
+            for(var i=0;i<ser?.length;i++){
+                serList.push(ser[i]._id.toString());
             }
+            var trans = await Transaction.find({
+            $or: [
+                { snid: { $in: tel } },
+                { smid: mid },
+                { rnid: { $in: tel } },
+                { rmid: mid },
+                { rsid: { $in: serList } },
+            ],
+            });
+            resolve({
+                user: user,
+                services: ser,
+                transactions: trans,
+                serObj: serObj
+            });
+
         } catch (error) {
-            console.log("ERR_TR_CHECK_AUTH: "+error);
-            reject({'error': 'unable to check your authentication'});
+            reject({'error': 'unable to get all data to this user'});
         }
     });
-
-    //TODO: Requette vers la base de donnees pour verifier si le data.ssid et data.apikey existent et corresponde
 }
 
-exports.isUserEnoughtMOB = function(uid, montant){
+exports.number_to_mob = function(snid, rmid, uid, montant){
     return new Promise(async (resolve, reject) => {
-        var ut = await User.findOne({_id: new mongoose.Types.ObjectId(uid)});
-        if(ut.balance > montant){
-            resolve(true);
-        }else{
-            reject({'error': 'this user don t have enought mob'});
+        //On verifi que le rmid est correcte
+        var user = await User.findOne({mid: rmid});
+        if(!user){
+            reject({'status': 401, 'error': 'rmid is unknown'});
+            return;
         }
-    })
-}
-
-exports.transINIT = function(data, modele){
-    return new Promise(async (resolve, reject) => {
-        //On construit la transaction puis on l'enregistre
-        var transaction = {};
-        transaction.type = modele;
-        transaction.snid = (data.snid?.length > 0)? data.snid : '';
-        transaction.smid = (data.smid?.length > 0)? data.smid : '';
-        transaction.rnid = (data.rnid?.length > 0)? data.rnid : '';
-        transaction.rmid = (data.rmid?.length > 0)? data.rmid : '';
-        transaction.rsid = (data.rsid?.length > 0)? data.rsid : '';
-        transaction.montant = data.montant;
-        transaction.total = data.montant;
-        
-        if(data.description?.length > 0){
-            transaction.description = data.description;
-        }else{
-            transaction.description = `Payement de ${data.montant} xaf via Mobidyc`;
+        //On verifi que le snid est correcte
+        if(findTransfertHome(snid) == constantes.transferHOME.NONE){
+            reject({'status': 400, 'error': 'snid is invalid'});
+            return;
         }
-        const tr = await Transaction.create(transaction);
-        if(tr._id != undefined){
-            //La transaction a bien ete enregistree
-            resolve({transID: tr._id.toString(), description: transaction.description});
-        }else{
-            reject({'error': 'unable to save transaction'});
-        }
-    })
-}
-
-exports.incrementMOB = function(uid, mob){
-    return new Promise(async (resolve, reject) => {
-        await User.findByIdAndUpdate(new mongoose.Types.ObjectId(uid),
-        {$inc: {balance: mob, updatedAt: new Date()}}).then((r) => {
-            resolve(true);
+        //On construit la requette vers l api
+        const apiid = uid;
+        const apikey = createApiKey(`us${constantes.localIP}er`, uid);
+        //console.log(apikey);
+        axios.post(`${constantes.addrMobidycAPI}trans/init`,{
+            snid: snid,
+            rmid, rmid,
+            apiid: apiid,
+            apikey: apikey,
+            montant: montant,
+            data: {}
+        }).then(function(response) {
+            //console.log(response.data);
+            //console.log('okokokkkokok');
+            resolve(response.data);
         }).catch((err) => {
-            console.log('ERR_ADD_MOB:  '+err);
-            reject({'error': 'Unable to increment mob to this user'});
-        })
-    })
+            var status = (err.response?.status != undefined)? err.response?.status : 501;
+            var data = (err.response?.data != undefined)? err.response?.data : "Internal Error"; 
+            console.log('ERR_AXIOS_1: '+data);
+            
+            reject({'status': status, 'error': data});
+            return;
+        });
+
+    });
 }
 
-exports.decrementMOB = function(uid, mob){
+
+exports.mob_to_mob = function( rmid, uid, montant){
     return new Promise(async (resolve, reject) => {
-        await User.findByIdAndUpdate(new mongoose.Types.ObjectId(uid),
-        {$inc: {balance: -mob, updatedAt: new Date()}}).then((r) => {
-            resolve(true);
+        //On verifi que le rmid est correcte
+        var user = await User.findOne({mid: rmid});
+        if(!user){
+            reject({status: 402, 'error': 'rmid is unknown'});
+            return;
+        }
+        var user2 = await User.findOne({_id: uid});
+        var smid = user2.mid;
+        //On construit la requette vers l api
+        const apiid = uid;
+        const apikey = createApiKey(`us${constantes.localIP}er`, uid);
+        axios.post(`${constantes.addrMobidycAPI}trans/init`,{
+            smid: smid,
+            rmid, rmid,
+            apiid: apiid,
+            apikey: apikey,
+            montant: montant,
+            data: {}
+        }).then(function(response) {
+            //console.log(response.data);
+            //console.log('okokokkkokok');
+            resolve(response.data);
         }).catch((err) => {
             console.log(err);
-            reject({'error': 'Unable to decrement mob to this user'});
+            console.log('ERR_AXIOS_2: '+err.response?.data);
+            reject({'status': err.response?.status, 'error': 'Une erreur s est produite'});
+            return;
         })
-    
-    })
+
+    });
 }
 
-exports.updateStatusTrans = function(transID, status){
+
+exports.mob_to_number = function( rnid, uid, montant){
     return new Promise(async (resolve, reject) => {
-        await Transaction.findByIdAndUpdate(new mongoose.Types.ObjectId(transID),
-        {state: status}).then((r) => {
-            resolve(true);
+        var user = await User.findOne({_id: uid});
+        var smid = user.mid;
+        //On construit la requette vers l api
+        const apiid = uid;
+        const apikey = createApiKey(`us${constantes.localIP}er`, uid);
+        axios.post(`${constantes.addrMobidycAPI}trans/init`,{
+            smid: smid,
+            rnid, rnid,
+            apiid: apiid,
+            apikey: apikey,
+            montant: montant,
+            data: {}
+        }).then(function(response) {
+            //console.log(response.data);
+            //console.log('okokokkkokok');
+            resolve(response.data);
         }).catch((err) => {
-            reject({'error': 'Unable to update  the status of the transaction'});
+            console.log(err);
+            console.log('ERR_AXIOS_3: '+err.response?.data);
+            reject({'status': err.response?.status, 'error': err.response?.data});
+            return;
         })
-    })
+
+    });
 }
 
-exports.hhh = async function(Service) {
-    var tt = await Service.findOne({nom: 'Service2'});
-console.log(tt);
+
+exports.number_to_number = function(snid, rnid, uid, montant){
+    return new Promise(async (resolve, reject) => {
+        var user = await User.findOne({_id: uid});
+        //On construit la requette vers l api
+        const apiid = uid;
+        const apikey = createApiKey(`us${constantes.localIP}er`, uid);
+        axios.post(`${constantes.addrMobidycAPI}trans/init`,{
+            snid: snid,
+            rnid, rnid,
+            apiid: apiid,
+            apikey: apikey,
+            montant: montant,
+            data: {}
+        }).then(function(response) {
+            //console.log(response.data);
+            //console.log('okokokkkokok');
+            resolve(response.data);
+        }).catch((err) => {
+            console.log('ERR_AXIOS_3: '+err.response.data);
+            reject({'error': err.response.data});
+            return;
+        })
+
+    });
 }
-exports.fff = function(){
-    console.log(createApiKey('us::1er', '654f36cd5a0a492d5f3ad61a'));
-}
+
+
 // Fonction pour créer une clé API
 function createApiKey(apiKeySecret, data) {
     const hmac = crypto.createHmac('sha256', apiKeySecret);
@@ -348,26 +186,101 @@ function createApiKey(apiKeySecret, data) {
     return signature;
 }
 
-// Fonction pour vérifier la validité d'une clé API
-function verifyApiKey(apiKeySecret, data, receivedSignature) {
-    const expectedSignature = createApiKey(apiKeySecret, data);
-    return receivedSignature === expectedSignature;
+
+function findTransfertHome(numero) {
+    // Expression régulière pour le format attendu
+    const regexAM = /^(077|074)\d{6}$/;
+    const regexMM = /^(066|062)\d{6}$/;
+  
+    // Test de la correspondance avec les deux catégories
+    if (regexAM.test(numero)) {
+      return constantes.transferHOME.AIRTEL_MONEY;
+    } else if (regexMM.test(numero)) {
+      return constantes.transferHOME.MOOV_MONEY;
+    } else {
+      return constantes.transferHOME.NONE;
+    }
+  }
+exports.findTransfertHome = findTransfertHome;
+
+exports.get_auth = function(rid, socket, montant, frais){
+    return new Promise((resolve, reject) => {
+        try {
+            console.log('On attend la reponse du client');
+            socket.emit('get_auth', {
+                rid: rid,
+                montant: montant,
+                frais: frais
+            }, (response) => {
+              resolve(response);
+            });
+        } catch (error) {
+            console.log(error);
+            console.log('UNE ERREUR');
+            reject({'error': 'permission denied'});   
+        }
+    });
 }
 
-exports.req_MOB_AUTH = function(uid, montant, description){
-    return new Promise((resolve, reject) => {
-        //On demande au client la permission de lui prendre des mob pour ce service
 
-        //L APK n a pas encore ete dveloppe, on considere que le client a donnee sont autorisation
-        resolve(true);
+exports.confirmToken = function(email, link){
+    return new Promise((resolve, reject) => {
+        const informationsToken = verifierTokenExpiration1h(link, email);
+        if (informationsToken) {
+            resolve(true);
+            // Le token est valide, vous pouvez utiliser les informations extraites
+            // pour identifier l'utilisateur et réinitialiser le mot de passe
+            // par exemple : informationsToken.userId pour identifier l'utilisateur.
+        } else {
+        // Le token est invalide ou a expiré, affichez un message approprié à l'utilisateur
+            console.log('Le lien a expiré ou est invalide.');
+            reject(false);
+        }
     })
 }
 
-exports.req_NUM_AUTH = function(rid, sid, montant, description){
-    return new Promise((resolve, reject) => {
-        //On envoi une requettte a sinpay 
+function verifierTokenExpiration1h(token, secretKey) {
+    const jwt = require('jsonwebtoken');
+    try {
+      // Vérifier le token
+      const decoded = jwt.verify(token, secretKey);
+      console.log('Token valide, décodé : ', decoded);
+      return decoded; // Retourne les informations extraites du token si celui-ci est valide
+    } catch (error) {
+      // Le token est invalide ou expiré
+      console.error('Token invalide : ', error);
+      return null;
+    }
+}
 
-        //L APK n a pas encore ete dveloppe, on considere que le client a donnee sont autorisation
+exports.resetPassordDo = async function(email, mdp){
+    return new Promise((resolve, reject) => {
+        var bcrypt = require('bcrypt');
+        //const crypto = require('crypto');
+        //var hash = crypto.createHash('sha256');
+        //var pass = hash.update(mdp).digest('hex');
+        bcrypt.hash(mdp, 5, async function(err, bcryptedPassword){
+            //console.log(bcryptedPassword);
+            //console.log(email);
+            await User.updateOne({mail: email}, {
+                $set: {mdp: bcryptedPassword}
+            });
+            resolve(true);
+        });
+        
+        
+    });
+   
+}
+
+
+exports.confirmEmail = function(email){
+    return new Promise(async (resolve, reject) => {
+        console.log(email);
+        await User.updateOne(
+            {mail: email},
+            {$set:{verified: true}}
+        );
         resolve(true);
     })
 }
