@@ -22,7 +22,7 @@ module.exports = {
             return res.status(400).json({'error': 'missing parameters'});
         }
         
-        axios.post(`${constantes.addrMobidycAPI}/users/register`,{
+        axios.post(`${constantes.addrMobidycAPI}users/register`,{
             nom: nom,
             prenom: prenom,
             mail: mail,
@@ -60,7 +60,7 @@ module.exports = {
             mdp: password,
           };
 
-          axios.get(`${constantes.addrMobidycAPI}/users/login`, { params })
+          axios.get(`${constantes.addrMobidycAPI}users/login`, { params })
           .then(async response => {
             //console.log(response.data);
             var user = await User.findOne({mail: email});
@@ -98,7 +98,7 @@ module.exports = {
             return res.status(401).json({'error': 'missing parameters'});
         }
         
-        axios.post(`${constantes.addrMobidycAPI}/users/update`,data).then(async function(response) {
+        axios.post(`${constantes.addrMobidycAPI}users/update`,data).then(async function(response) {
            //On renvoi l information au user
            
            console.log(response.status);
@@ -122,7 +122,7 @@ module.exports = {
             return res.status(400).json({'error': 'missing parameters'});
         }
         console.log(data);
-        axios.post(`${constantes.addrMobidycAPI}/users/reset/password`,data).then(async function(response) {
+        axios.post(`${constantes.addrMobidycAPI}users/reset/password`,data).then(async function(response) {
             //On renvoi l information au user
             res.status(response.status).json(response.data);
             return;
