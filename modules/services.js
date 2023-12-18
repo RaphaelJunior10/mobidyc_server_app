@@ -12,7 +12,8 @@ exports.get_all_infos = function(uid){
             //On recupere les infos du user
             var user = await User.findOne({_id: uid});
             //On recupere les infos sur ses services
-            var ser = await Service.findOne({uid: user._id});
+            var ser = await Service.find({uid: user._id.toString()});
+            
             var allSer = await Service.find();
             serObj = {};
             for(var j=0;j<allSer?.length;j++){
