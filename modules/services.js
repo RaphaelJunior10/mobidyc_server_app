@@ -49,6 +49,10 @@ exports.get_all_infos = function(uid){
 }
 
 exports.number_to_mob = function(snid, rmid, uid, montant){
+    const { v4: uuidv4 } = require('uuid');
+
+    // On genere une rénérer une référence unique
+    const uniqueReference = uuidv4();
     return new Promise(async (resolve, reject) => {
         //On verifi que le rmid est correcte
         var user = await User.findOne({mid: rmid});
@@ -66,6 +70,7 @@ exports.number_to_mob = function(snid, rmid, uid, montant){
         const apikey = createApiKey(`us${constantes.localIP}er`, uid);
         //console.log(apikey);
         axios.post(`${constantes.addrMobidycAPI}trans/init`,{
+            id: uniqueReference,
             snid: snid,
             rmid, rmid,
             apiid: apiid,
@@ -90,6 +95,10 @@ exports.number_to_mob = function(snid, rmid, uid, montant){
 
 
 exports.mob_to_mob = function( rmid, uid, montant){
+    const { v4: uuidv4 } = require('uuid');
+
+    // On genere une rénérer une référence unique
+    const uniqueReference = uuidv4();
     return new Promise(async (resolve, reject) => {
         //On verifi que le rmid est correcte
         var user = await User.findOne({mid: rmid});
@@ -103,6 +112,7 @@ exports.mob_to_mob = function( rmid, uid, montant){
         const apiid = uid;
         const apikey = createApiKey(`us${constantes.localIP}er`, uid);
         axios.post(`${constantes.addrMobidycAPI}trans/init`,{
+            id: uniqueReference,
             smid: smid,
             rmid, rmid,
             apiid: apiid,
@@ -125,6 +135,10 @@ exports.mob_to_mob = function( rmid, uid, montant){
 
 
 exports.mob_to_number = function( rnid, uid, montant){
+    const { v4: uuidv4 } = require('uuid');
+
+    // On genere une rénérer une référence unique
+    const uniqueReference = uuidv4();
     return new Promise(async (resolve, reject) => {
         var user = await User.findOne({_id: uid});
         var smid = user.mid;
@@ -132,6 +146,7 @@ exports.mob_to_number = function( rnid, uid, montant){
         const apiid = uid;
         const apikey = createApiKey(`us${constantes.localIP}er`, uid);
         axios.post(`${constantes.addrMobidycAPI}trans/init`,{
+            id: uniqueReference,
             smid: smid,
             rnid, rnid,
             apiid: apiid,
@@ -154,12 +169,17 @@ exports.mob_to_number = function( rnid, uid, montant){
 
 
 exports.number_to_number = function(snid, rnid, uid, montant){
+    const { v4: uuidv4 } = require('uuid');
+
+    // On genere une rénérer une référence unique
+    const uniqueReference = uuidv4();
     return new Promise(async (resolve, reject) => {
         var user = await User.findOne({_id: uid});
         //On construit la requette vers l api
         const apiid = uid;
         const apikey = createApiKey(`us${constantes.localIP}er`, uid);
         axios.post(`${constantes.addrMobidycAPI}trans/init`,{
+            id: uniqueReference,
             snid: snid,
             rnid, rnid,
             apiid: apiid,
