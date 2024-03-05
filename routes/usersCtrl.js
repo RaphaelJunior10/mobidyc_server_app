@@ -59,7 +59,8 @@ module.exports = {
             email: email,
             mdp: password,
           };
-
+          console.log(params);
+          console.log('params');
           axios.get(`${constantes.addrMobidycAPI}users/login`, { params })
           .then(async response => {
             //console.log(response.data);
@@ -74,6 +75,8 @@ module.exports = {
                     return;
                 }
             }
+            console.log(response.data);
+            console.log('ppppppppppppppppppp');
             res.status(response.status).json(response.data);
             return;
           })

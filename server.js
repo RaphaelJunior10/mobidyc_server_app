@@ -50,8 +50,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 //Mongoose
 const motDePasseEncode = encodeURIComponent("MbD-NaRj@2023");
-mongoose.connect(`mongodb://mobidyc_narj:${motDePasseEncode}@31.207.39.10:27017/mobidyc`);
-//mongoose.connect(`mongodb://127.0.0.1:27017/mobidyc`);
+//mongoose.connect(`mongodb://mobidyc_narj:${motDePasseEncode}@31.207.39.10:27017/mobidyc`);
+mongoose.connect(`mongodb://127.0.0.1:27017/mobidyc`);
 
 //Create a new user
 //console.log(User);
