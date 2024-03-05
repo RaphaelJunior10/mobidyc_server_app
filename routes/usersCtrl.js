@@ -63,7 +63,7 @@ module.exports = {
           console.log('params');
           axios.get(`${constantes.addrMobidycAPI}users/login`, { params })
           .then(async response => {
-            //console.log(response.data);
+            console.log(response.data);
             var user = await User.findOne({mail: email});
             console.log("ON Verifi");
             if(user){
