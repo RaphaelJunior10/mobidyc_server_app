@@ -20,6 +20,7 @@ const socketManager = (io, uid_to_socket,  socket_id_to_uid) => {
         console.log('111');
         
         var user = await User.findOne({mail: mail});
+        console.log(socket.uid);
         //console.log(await bcrypt.compare(mdp, user.mdp));
         console.log('222');
         if (!user){
