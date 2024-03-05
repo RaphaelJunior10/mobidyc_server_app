@@ -81,10 +81,11 @@ module.exports = {
             return;
           })
           .catch(error => {
+            console.log(error);
             console.error('Erreur lors de la requête GET :', error.message);
             var status = error.response?.status;
             status = (status == undefined)? 500 : status;
-            console.log(status);
+            //console.log(status);
             res.status(status).json({'error': 'une erreur est survenue lors de l operation'});
           });
         
