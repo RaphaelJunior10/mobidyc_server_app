@@ -249,6 +249,7 @@ const socketManager = (io, uid_to_socket,  socket_id_to_uid) => {
                 delete uid_to_socket[uid];
                 console.log(uid_to_socket);
             }
+            socket = null;
         });
         
     });
