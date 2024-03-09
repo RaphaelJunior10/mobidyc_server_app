@@ -67,7 +67,8 @@ exports.number_to_mob = function(snid, rmid, uid, montant){
         }
         //On construit la requette vers l api
         const apiid = uid;
-        const apikey = createApiKey(`us${constantes.localIP}er`, uid);
+        //const apikey = createApiKey(`us${constantes.localIP}er`, uid);
+        const apikey = user._id.toString();
         //console.log(apikey);
         axios.post(`${constantes.addrMobidycAPI}trans/init`,{
             id: uniqueReference,
@@ -110,7 +111,9 @@ exports.mob_to_mob = function( rmid, uid, montant){
         var smid = user2.mid;
         //On construit la requette vers l api
         const apiid = uid;
-        const apikey = createApiKey(`us${constantes.localIP}er`, uid);
+        //const apikey = createApiKey(`us${constantes.localIP}er`, uid);
+        const apikey = user._id.toString();
+
         axios.post(`${constantes.addrMobidycAPI}trans/init`,{
             id: uniqueReference,
             smid: smid,
@@ -144,7 +147,9 @@ exports.mob_to_number = function( rnid, uid, montant){
         var smid = user.mid;
         //On construit la requette vers l api
         const apiid = uid;
-        const apikey = createApiKey(`us${constantes.localIP}er`, uid);
+        //const apikey = createApiKey(`us${constantes.localIP}er`, uid);
+        const apikey = user._id.toString();
+
         axios.post(`${constantes.addrMobidycAPI}trans/init`,{
             id: uniqueReference,
             smid: smid,
@@ -177,7 +182,9 @@ exports.number_to_number = function(snid, rnid, uid, montant){
         var user = await User.findOne({_id: uid});
         //On construit la requette vers l api
         const apiid = uid;
-        const apikey = createApiKey(`us${constantes.localIP}er`, uid);
+        //const apikey = createApiKey(`us${constantes.localIP}er`, uid);
+        const apikey = user._id.toString();
+        
         axios.post(`${constantes.addrMobidycAPI}trans/init`,{
             id: uniqueReference,
             snid: snid,

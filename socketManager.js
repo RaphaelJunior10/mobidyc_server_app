@@ -82,8 +82,8 @@ const socketManager = (io, uid_to_socket,  socket_id_to_uid) => {
     
         socket.on('number_to_mob', async (data, callback) => {
             console.log('Un number to mob');
-            /*console.log(data);
-            callback({
+            console.log(data);
+            /*callback({
                 status: 200,
                 data: {'tt': 'uu'}
             });
