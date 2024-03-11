@@ -58,6 +58,8 @@ exports.get_all_infos = function(uid){
                                 "type": tr_i.type,
                                 "snid": tr_i.snid,
                                 "smid": tr_i.smid,
+                                "rsid": tr_i.rsid,
+                                "rmid": tr_i.rmid,
                                 "rsid": trans[i].rsids[j].rsid,
                                 "montant": mtn,
                                 "total": mtn,
