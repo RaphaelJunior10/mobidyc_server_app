@@ -26,6 +26,7 @@ exports.get_all_infos = function(uid){
             for(var i=0;i<ser?.length;i++){
                 serList.push(ser[i]._id.toString());
             }
+            
             var trans = await Transaction.find({
             $or: [
                 { snid: { $in: tel } },
@@ -33,8 +34,57 @@ exports.get_all_infos = function(uid){
                 { rnid: { $in: tel } },
                 { rmid: mid },
                 { rsid: { $in: serList } },
+                { rsids: { $elemMatch: { rsid: {$in: serList} } } },
             ],
             });
+            //On selectionne les multiple trans pour les mettres en trans 
+            var tab = [];
+            for(var i=0; i< trans.length; i++){
+                //console.log(trans[i].reference);
+                var mtn = 0;
+                if(trans[i].rsid == '' && trans[i].rsids != undefined){
+                    //On recupere les info
+                    for(var j=0;j<trans[i].rsids.length;j++){
+                       
+                        var ref = trans[i].reference;
+                        var mt0 = trans[i].rsids[j].montant;
+                        if(serList.includes(trans[i].rsids[j].rsid)){
+                            
+                            mtn = mt0;
+                            //On cree une autre tranaction
+                            var tr_i = trans[i];
+                            var tr = {
+                                "_id": tr_i._id,
+                                "type": tr_i.type,
+                                "snid": tr_i.snid,
+                                "smid": tr_i.smid,
+                                "rsid": trans[i].rsids[j].rsid,
+                                "montant": mtn,
+                                "total": mtn,
+                                "reference": tr_i.reference,
+                                "description": `Payement de ${mtn} xaf via Mobidyc`,
+                                "rsids": tr_i.rsids,
+                                "frais": tr_i.frais,
+                                "state": tr_i.state,
+                                "createdAt": tr_i.createdAt,
+                                "updatedAt": tr_i.updatedAt,
+                                "ebilling": tr_i.ebilling
+                            }
+                              //On insere la transaction dans le tableau
+                              tab.push({index: i, obj: tr});
+                        }
+                    }
+                }
+            }
+            //On met a jour les transactions
+            
+            for(var k=0; k<tab.length;k++){
+                var index = tab[k].index;
+                let firstPart = trans.slice(0, index);
+                let secondPart = trans.slice(index+1);
+                trans = firstPart.concat(tab[k].obj, secondPart);
+            }
+            
             resolve({
                 user: user,
                 services: ser,
@@ -184,7 +234,7 @@ exports.number_to_number = function(snid, rnid, uid, montant){
         const apiid = uid;
         //const apikey = createApiKey(`us${constantes.localIP}er`, uid);
         const apikey = user._id.toString();
-        
+
         axios.post(`${constantes.addrMobidycAPI}trans/init`,{
             id: uniqueReference,
             snid: snid,

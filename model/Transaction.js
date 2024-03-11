@@ -11,6 +11,9 @@ const TransSchema = new Schema({
     rnid: String,
     rmid: String,
     rsid: String,
+    rsids: {
+        type: Array,
+    },
     montant: {
         type: Number,
         required: true,
@@ -21,6 +24,10 @@ const TransSchema = new Schema({
         required: true,
         integer: true,
         default: () => 0
+    },
+    reference: {
+        type: String,
+        required: true
     },
     total: {
         type: Number,
@@ -46,6 +53,9 @@ const TransSchema = new Schema({
         default: () => Date.now(),
         immutable: true
     },
+    ebilling: {
+        type: Object
+    }
 });
 
 const Trans = model("Transaction", TransSchema);
