@@ -69,11 +69,11 @@ module.exports = {
             if(user){
                 //console.log(uid_to_socket);
                 //On verifi si le user est deja connecte
-                if(uid_to_socket[user._id.toString()] != undefined){
+                /*if(uid_to_socket[user._id.toString()] != undefined){
                     //Le user est deja connecte
                     res.status(509).json({'error': 'you are already connected'});
                     return;
-                }
+                }*/
             }
             console.log(response.data);
             console.log('ppppppppppppppppppp');
