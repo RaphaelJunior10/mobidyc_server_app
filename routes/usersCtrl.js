@@ -34,7 +34,7 @@ module.exports = {
         }).catch((err) => {
             console.log(err);
             console.log('ERR_AXIOS_1: '+err.response?.data);
-            res.status(err.response?.status).json({'error': 'une erreur est survenue lors de l operation'});
+            res.status(err.response?.status).json(err.response?.data);
             return;
         });
         
@@ -69,12 +69,13 @@ module.exports = {
             if(user){
                 //console.log(uid_to_socket);
                 //On verifi si le user est deja connecte
-                /*if(uid_to_socket[user._id.toString()] != undefined){
+                if(uid_to_socket[user._id.toString()] != undefined){
                     //Le user est deja connecte
                     res.status(509).json({'error': 'you are already connected'});
                     return;
-                }*/
+                }
             }
+            console.log('OOOOOOOOOOOOOOOOOOOOOO');
             console.log(response.data);
             console.log('ppppppppppppppppppp');
             res.status(response.status).json(response.data);
@@ -90,6 +91,10 @@ module.exports = {
           });
         
 
+    },
+    logout: function(req, res) {
+        var email = req.body.email;
+        console.log(email);
     },
     update: function(req, res){
         console.log('register');

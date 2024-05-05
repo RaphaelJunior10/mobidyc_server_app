@@ -11,6 +11,7 @@ exports.router = (function(){
     //Users routes
     apiRouter.route('/users/register/').post(usersCtrl.register);
     apiRouter.route('/users/login/').post(usersCtrl.login);
+    apiRouter.route('/users/logout/').post(usersCtrl.logout);
     apiRouter.route('/users/update/').post(usersCtrl.update);
     apiRouter.route('/users/reset/password').post(usersCtrl.resetPassword);
     apiRouter.route('/users/reset/password/:email/:link').get(usersCtrl.confirmReset);
