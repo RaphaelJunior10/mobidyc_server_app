@@ -49,7 +49,7 @@ module.exports = {
         var email = req.body.email;
         var password = req.body.mdp;
         //console.log(email, password);
-        console.log(req.body);
+        //console.log(req.body);
         if(email == null || password == null){
             res.status(400).json({'error': 'missing parameters'});
             return;
@@ -59,11 +59,11 @@ module.exports = {
             email: email,
             mdp: password,
           };
-          console.log(params);
-          console.log('params');
+          //console.log(params);
+          //console.log('params');
           axios.get(`${constantes.addrMobidycAPI}users/login`, { params })
           .then(async response => {
-            console.log(response.data);
+            //console.log(response.data);
             var user = await User.findOne({mail: email});
             console.log("ON Verifi");
             if(user){
@@ -75,9 +75,9 @@ module.exports = {
                     return;
                 }
             }
-            console.log('OOOOOOOOOOOOOOOOOOOOOO');
-            console.log(response.data);
-            console.log('ppppppppppppppppppp');
+            //console.log('OOOOOOOOOOOOOOOOOOOOOO');
+            //console.log(response.data);
+            //console.log('ppppppppppppppppppp');
             res.status(response.status).json(response.data);
             return;
           })
@@ -200,9 +200,94 @@ module.exports = {
         });
     },
 
+    main: function(req, res){
+        res.render('ejs/main', {
+        });
+    },
+
     cgu: function(req, res){
         res.render('ejs/cgu', {
         });
+    },
+
+    webLogin: function(req, res) {
+        res.render('ejs/login', {})
+    },
+
+    webLogTraitement: function(req, res){
+        //const fetch = require('node-fetch');
+        const services = require("../modules/services");
+        //const demarrage = require("../module/demarrage");
+        import('node-fetch').then(async ({default: fetch}) => {
+            // Votre utilisation de fetch ici
+            var captchaVerified = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=6LfJ9_UoAAAAALT9encDqTVFJdk49VbWExxfYjfK&response=${req.body['g-recaptcha-response']}`, {
+                method: 'POST'
+            }).then(_res => _res.json());
+            //console.log(captchaVerified);
+            //console.log('ooooooooooo');
+            if(captchaVerified.success == true){
+                //Traitement contre les failles XSS
+                var num = req.body.numero;
+                num = num.replace(/<[^>]*>?/gm, '');
+                const pass = req.body.password;
+                
+                //console.log(num+'  '+pass);
+                req.body = {};
+                req.body.email = mail
+                req.body.mdp = pass;
+                this.login(req, res).then((f) => {
+                    console.log(f);
+                    console.log('uuu');
+                })
+                services.webLogin(num, pass).then(function(data){
+                    return;
+                    console.log(data);
+                    const state = data[0];
+                    if(state){
+                        const id = data[1][0];
+                        const nom = data[1][1];
+                        const prenom = data[1][2];
+                        const panier = data[1][3];
+                        const isEmailVerified = data[1][4];
+                        //console.log(panier+'    99999999');
+                        //console.log(nom+' '+prenom);
+                        //console.log(panier+' &&&&&&&&&&');
+                        req.session.idUser = id;
+                        req.session.nameUser = nom+' '+prenom;
+                        req.session.panier = panier;
+                        req.session.isEmailVerified = isEmailVerified;
+                        const previousPage = req.session.previousPage;
+                        const localPage = req.session.localPage;
+                        //console.log(localPage);
+                        //console.log('tttttttt1');
+                        //if(localPage != undefined && localPage != '' && !localPage.includes('/connexion') && !localPage.includes('/inscription')){
+                        if(localPage != undefined && localPage.includes('/infoProduit')){
+                            //console.log('tttttttt2');
+                            demarrage.demarrage(req, '').then(function(d){
+                                //console.log('tttttttt3');
+                                //console.log(localPage);
+                                res.redirect(localPage);
+                                return;
+                            }).catch((err) => {})
+                        }else{
+                            res.redirect('/');
+                            return;
+                        }
+                    }else{
+                        res.redirect('/connexion?err=404')
+                        return;
+                    }
+                })
+            }else{
+                res.redirect('/connexion?err=450')
+                return;
+            }
+          }).catch((err) => {
+            // Gérez toute erreur liée à l'importation
+            console.error('Erreur lors du chargement de node-fetch :', err);
+          });
+        
+        
     }
 
 

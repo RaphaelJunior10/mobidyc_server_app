@@ -12,6 +12,7 @@ var http = require('http');
 //const socketIO = require('socket.io');
 const cors = require('cors');
 var apiRouter = require('./apiRouter').router;
+var webRouter = require('./webRouter').router;
 var mongoose = require('mongoose');
 const socketManager = require('./socketManager');
 const User = require("./model/User");
@@ -50,8 +51,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 //Mongoose
 const motDePasseEncode = encodeURIComponent("MbD-NaRj@2023");
-mongoose.connect(`mongodb://mobidyc_narj:${motDePasseEncode}@31.207.39.10:27017/mobidyc`);
-//mongoose.connect(`mongodb://127.0.0.1:27017/mobidyc`);
+//mongoose.connect(`mongodb://mobidyc_narj:${motDePasseEncode}@31.207.39.10:27017/mobidyc`);
+mongoose.connect(`mongodb://127.0.0.1:27017/mobidyc`);
 /*service.get_all_infos('65ec44100f9f02c802a0673f').then((rr) => {
   console.log(rr);
   console.log('OIUYTRE');
@@ -95,7 +96,7 @@ app.get('/p1', (req, res) => {
 
 
 //Configure route
-app.get('/', function(req, res){
+/*app.get('/', function(req, res){
     res.setHeader('Content-Type', 'text/html');
     res.status(200).send('<h1>Bonjour sur non serveur</h1>');
 });
@@ -103,7 +104,7 @@ app.get('/', function(req, res){
 app.get('/cgu', function(req, res){
   res.render('ejs/cgu', {
   });
-})
+})*/
 
 
 
@@ -111,6 +112,8 @@ app.get('/cgu', function(req, res){
   // Utilisez le middleware de validation des adresses IP pour toutes les routes
   app.use('/assets', express.static(__dirname + '/assets'));
   app.use('/app/', apiRouter);
+
+  app.use('/', webRouter);
 
 //Launch server
 server.listen('3100', function(){

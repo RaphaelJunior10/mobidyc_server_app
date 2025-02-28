@@ -364,3 +364,16 @@ exports.confirmEmail = function(email){
         resolve(true);
     })
 }
+
+exports.webLogin = async function(mail, pass) {
+    const crypto = require('crypto');
+    var hash = crypto.createHash('sha256');
+    pass = hash.update(pass).digest('hex');
+
+    console.log(mail);
+    console.log(pass);
+    var user = await User.findOne({mail: mail, mdp: pass});
+
+    console.log(user);
+    console.log('OIOIO');
+}
