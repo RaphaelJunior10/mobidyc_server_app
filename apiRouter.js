@@ -18,6 +18,8 @@ exports.router = (function(){
     apiRouter.route('/users/reset/password/init/:email/:mdp').get(usersCtrl.resetPasswordDo);
     apiRouter.route('/users/verifEmail/:email/:link').get(usersCtrl.verifEmailProcess);
     apiRouter.route('/cgu').get(usersCtrl.cgu);
+
+    apiRouter.route('/cgu_puzzleme').get(usersCtrl.cgu_puzzleme);
     
     
     //Transaction routes

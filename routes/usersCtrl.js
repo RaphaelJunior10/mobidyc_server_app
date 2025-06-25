@@ -210,6 +210,11 @@ module.exports = {
         });
     },
 
+    cgu_puzzleme: function(req, res){
+        res.render('ejs/cgu_puzzleme', {
+        });
+    },
+
     webLogin: function(req, res) {
         res.render('ejs/login', {})
     },
