@@ -215,6 +215,11 @@ module.exports = {
         });
     },
 
+    deleteData: function(req, res){
+        res.render('ejs/del_data_puzzleme', {
+        });
+    },
+
     webLogin: function(req, res) {
         res.render('ejs/login', {})
     },
