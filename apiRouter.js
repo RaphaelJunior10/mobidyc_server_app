@@ -20,6 +20,7 @@ exports.router = (function(){
     apiRouter.route('/cgu').get(usersCtrl.cgu);
 
     apiRouter.route('/cgu_puzzleme').get(usersCtrl.cgu_puzzleme);
+    apiRouter.route('/puzzleme/data/delete').get(usersCtrl.deleteData);
     
     
     //Transaction routes
